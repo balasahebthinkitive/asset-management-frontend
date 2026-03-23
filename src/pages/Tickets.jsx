@@ -3,6 +3,7 @@ import {
   useReactTable, getCoreRowModel, getSortedRowModel,
   getPaginationRowModel, flexRender,
 } from "@tanstack/react-table";
+import INITIAL_DATA from "../data/ticketData";
 import { getTickets, createTicket, updateTicket, deleteTicket } from "../api/tickets";
 import StatCard from "../components/StatCard";
 import StatusBadge, {
@@ -32,7 +33,7 @@ const IconEdit    = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" 
 const IconTrash   = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>;
 
 export default function Tickets() {
-  const [data, setData]               = useState([]);
+  const [data, setData]               = useState(INITIAL_DATA);
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState(null);
   const [saving, setSaving]           = useState(false);
@@ -53,9 +54,11 @@ export default function Tickets() {
       setLoading(true);
       setError(null);
       const res = await getTickets();
-      setData(res.data?.tickets ?? res.data ?? []);
+      const tickets = res.data?.tickets ?? res.data ?? [];
+      setData(tickets.length ? tickets : INITIAL_DATA);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to load tickets.");
+      setError(err.response?.data?.msg || err.response?.data?.message || "Failed to load tickets.");
+      setData(INITIAL_DATA);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,4 @@
-const ticketData = [
+const INITIAL_DATA = [
   { id: 1,  ticketNo: "TKT-0001", title: "Laptop overheating during use",        assetName: "Dell Latitude 5520",  assetSerial: "SN-DL-001", reportedBy: "Rahul Sharma",   department: "Engineering", issueType: "Heating",      priority: "High",     status: "Open",        assignedTo: "IT Team",      resolvedAt: null,         remarks: "Fan making noise" },
   { id: 2,  ticketNo: "TKT-0002", title: "Screen flickering on HP laptop",       assetName: "HP EliteBook 840",    assetSerial: "SN-HP-023", reportedBy: "Priya Patel",    department: "HR",          issueType: "Screen",       priority: "Medium",   status: "In Progress", assignedTo: "Vikram IT",    resolvedAt: null,         remarks: "" },
   { id: 3,  ticketNo: "TKT-0003", title: "Battery draining in 2 hours",          assetName: "Lenovo ThinkPad T14", assetSerial: "SN-LN-045", reportedBy: "Amit Singh",     department: "Finance",     issueType: "Battery",      priority: "Medium",   status: "Resolved",    assignedTo: "Neha IT",      resolvedAt: "2025-01-15", remarks: "Battery replaced" },
@@ -13,4 +13,4 @@ const ticketData = [
   { id: 12, ticketNo: "TKT-0012", title: "System randomly shuts down",           assetName: "Lenovo ThinkPad E15", assetSerial: "SN-LN-112", reportedBy: "Kavya Rao",      department: "HR",          issueType: "Heating",      priority: "Critical", status: "Open",        assignedTo: "IT Team",      resolvedAt: null,         remarks: "Thermal paste needed" },
 ];
 
-export default ticketData;
+export default INITIAL_DATA;
