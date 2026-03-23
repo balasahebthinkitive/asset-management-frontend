@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://balasahebthinkitive.github.io/asset-management-frontend",
   "dependencies": {
     "@tanstack/react-query": "^5.91.2",
     "@tanstack/react-table": "^8.21.3",
