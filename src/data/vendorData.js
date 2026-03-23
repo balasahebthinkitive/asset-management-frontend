@@ -1,0 +1,14 @@
+const vendorData = [
+  { id: 1, name: "Dell Technologies",     contactPerson: "Rajesh Kumar",    email: "rajesh@dell.com",       phone: "9876543210", vendorType: "Purchase", gstin: "27AADCD1234F1Z5", website: "www.dell.com",       address: "Pune, Maharashtra", isActive: true,  remarks: "Primary laptop vendor" },
+  { id: 2, name: "HP India Pvt Ltd",      contactPerson: "Sunita Sharma",   email: "sunita@hp.com",         phone: "9123456789", vendorType: "Purchase", gstin: "27AABCH5678G1Z3", website: "www.hp.com",         address: "Mumbai, Maharashtra", isActive: true, remarks: "Printers and laptops" },
+  { id: 3, name: "Lenovo India",          contactPerson: "Amit Patel",      email: "amit@lenovo.com",       phone: "9988776655", vendorType: "Purchase", gstin: "29AACFL9012H1Z1", website: "www.lenovo.com",     address: "Bengaluru, Karnataka", isActive: true, remarks: "" },
+  { id: 4, name: "TechRent Solutions",    contactPerson: "Priya Singh",     email: "priya@techrent.com",    phone: "8877665544", vendorType: "Rental",   gstin: "27AAECT3456I1Z9", website: "www.techrent.com",   address: "Pune, Maharashtra",   isActive: true,  remarks: "Short-term laptop rentals" },
+  { id: 5, name: "QuickFix Systems",      contactPerson: "Vikram Nair",     email: "vikram@quickfix.com",   phone: "9765432198", vendorType: "Repair",   gstin: "27AAFCQ7890J1Z7", website: "",                   address: "Pune, Maharashtra",   isActive: true,  remarks: "Hardware repairs" },
+  { id: 6, name: "Samsung Electronics",   contactPerson: "Meera Reddy",     email: "meera@samsung.com",     phone: "9654321087", vendorType: "Purchase", gstin: "29AABCS2345K1Z5", website: "www.samsung.com",    address: "Bengaluru, Karnataka", isActive: true, remarks: "Monitors and mobiles" },
+  { id: 7, name: "RentDesk India",        contactPerson: "Anil Deshmukh",   email: "anil@rentdesk.com",     phone: "8765432109", vendorType: "Rental",   gstin: "27AABCR6789L1Z3", website: "www.rentdesk.in",    address: "Mumbai, Maharashtra", isActive: false, remarks: "Contract expired" },
+  { id: 8, name: "ProService IT",         contactPerson: "Neha Joshi",      email: "neha@proservice.com",   phone: "9543210876", vendorType: "Repair",   gstin: "27AABCP1234M1Z1", website: "",                   address: "Pune, Maharashtra",   isActive: true,  remarks: "AMC for desktops" },
+  { id: 9, name: "Logitech Distributor",  contactPerson: "Ravi Kulkarni",   email: "ravi@logidist.com",     phone: "9432108765", vendorType: "Purchase", gstin: "27AABCL5678N1Z9", website: "",                   address: "Pune, Maharashtra",   isActive: true,  remarks: "Peripherals vendor" },
+  { id:10, name: "Acer India",            contactPerson: "Kavita Mehta",    email: "kavita@acer.com",       phone: "9321087654", vendorType: "Purchase", gstin: "27AABCA9012O1Z7", website: "www.acer.com",        address: "Mumbai, Maharashtra", isActive: true,  remarks: "" },
+];
+
+export default vendorData;
