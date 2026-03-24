@@ -27,6 +27,7 @@ import Settings from './pages/Settings';
 import Equipment from './pages/Equipment';
 import Vendors from './pages/Vendors';
 import Tickets from './pages/Tickets';
+import SwaggerDocs from './pages/SwaggerDocs';
 
 function PrivateRoute() {
   const { user } = useAuth();
@@ -93,6 +94,7 @@ function App() {
               <Route path="/rent-list"       element={<RentList />} />
               <Route path="/vendors"             element={<Vendors />} />
               <Route path="/tickets"             element={<Tickets />} />
+              <Route path="/api-docs"            element={<SwaggerDocs />} />
               <Route path="/dashboard-management" element={<DashboardManagement />} />
               <Route path="/settings"        element={<Settings />} />
               <Route path="/equipment"       element={<Equipment />} />

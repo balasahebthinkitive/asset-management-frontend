@@ -1,0 +1,1026 @@
+openapi: 3.0.3
+info:
+  title: Asset Management API
+  description: |
+    REST API for the **Asset Management** system — manages IT assets (laptops,
+    peripherals), vendors, and support tickets across office locations.
+
+    **Base URL:** `http://localhost:5000/api`
+
+    **Authentication:** Bearer token in the `Authorization` header.
+    Obtain a token via the `/auth/callback` endpoint after OAuth login.
+  version: 1.0.0
+  contact:
+    name: IT Department — Thinkitive
+    email: it@thinkitive.com
+
+servers:
+  - url: http://localhost:5000/api
+    description: Local development server
+  - url: https://api.thinkitive.com/api
+    description: Production server
+
+tags:
+  - name: Auth
+    description: Authentication & session management
+  - name: Laptops
+    description: Laptop asset CRUD, bulk import, and statistics
+  - name: Tickets
+    description: IT support ticket management
+  - name: Vendors
+    description: Vendor / supplier management
+
+# ─────────────────────────────────────────────
+# SECURITY SCHEME
+# ─────────────────────────────────────────────
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # ─── REUSABLE SCHEMAS ───────────────────────
+  schemas:
+
+    # ── Auth ──────────────────────────────────
+    AuthCallbackRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          description: OAuth authorisation code received from the provider
+          example: "abc123xyz"
+        state:
+          type: string
+          description: CSRF state token
+          example: "xyz789"
+
+    AuthCallbackResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "64f1a2b3c4d5e6f7a8b9c0d1"
+            email:
+              type: string
+              example: "user@thinkitive.com"
+            name:
+              type: string
+              example: "Balasaheb Kankate"
+
+    # ── Laptop ────────────────────────────────
+    Laptop:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: MongoDB document ID
+          example: "64f1a2b3c4d5e6f7a8b9c0d1"
+        id:
+          type: integer
+          example: 1
+        brand:
+          type: string
+          example: "Apple"
+        model:
+          type: string
+          example: "MacBook Pro"
+        serial:
+          type: string
+          description: Hardware serial number
+          example: "C02F497AMD6M"
+        ram:
+          type: string
+          example: "16 GB"
+        os:
+          type: string
+          example: "MacOS"
+        label:
+          type: string
+          description: Internal asset label
+          example: "TH/PUN1/APL/LAP - 0001"
+        assigned:
+          type: string
+          description: Name of the person/team this laptop is assigned to
+          example: "Dhananjay Ashok Kolte"
+        status:
+          type: string
+          enum: [assigned, maintenance, available, unassigned]
+          example: "assigned"
+        location:
+          type: string
+          example: "TEERTH"
+        purchaseDate:
+          type: string
+          description: Purchase date (DD/MM/YYYY)
+          example: "26/02/2021"
+        cost:
+          type: string
+          description: Asset cost in INR
+          example: "25000"
+        working:
+          type: string
+          enum: [YES, NO]
+          example: "YES"
+        remarks:
+          type: string
+          example: "Heating issue"
+
+    LaptopInput:
+      type: object
+      required: [brand, model, serial, status]
+      properties:
+        brand:
+          type: string
+          example: "Dell"
+        model:
+          type: string
+          example: "Latitude 5520"
+        serial:
+          type: string
+          example: "SN-DL-NEW-001"
+        ram:
+          type: string
+          example: "8 GB"
+        os:
+          type: string
+          example: "Windows 11"
+        label:
+          type: string
+          example: "TH/PUN1/DEL/LAP - 0050"
+        assigned:
+          type: string
+          example: "John Doe"
+        status:
+          type: string
+          enum: [assigned, maintenance, available, unassigned]
+          example: "available"
+        location:
+          type: string
+          example: "TEERTH"
+        purchaseDate:
+          type: string
+          example: "01/01/2024"
+        cost:
+          type: string
+          example: "45000"
+        working:
+          type: string
+          enum: [YES, NO]
+          example: "YES"
+        remarks:
+          type: string
+          example: ""
+
+    LaptopStats:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 120
+        assigned:
+          type: integer
+          example: 95
+        maintenance:
+          type: integer
+          example: 15
+        available:
+          type: integer
+          example: 10
+
+    BulkImportRequest:
+      type: object
+      required: [laptops]
+      properties:
+        laptops:
+          type: array
+          items:
+            $ref: '#/components/schemas/LaptopInput'
+
+    BulkImportResponse:
+      type: object
+      properties:
+        inserted:
+          type: integer
+          example: 10
+        failed:
+          type: integer
+          example: 0
+        errors:
+          type: array
+          items:
+            type: string
+
+    # ── Ticket ────────────────────────────────
+    Ticket:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64f1a2b3c4d5e6f7a8b9c0d2"
+        id:
+          type: integer
+          example: 1
+        ticketNo:
+          type: string
+          example: "TKT-0001"
+        title:
+          type: string
+          example: "Laptop overheating during use"
+        assetName:
+          type: string
+          example: "Dell Latitude 5520"
+        assetSerial:
+          type: string
+          example: "SN-DL-001"
+        reportedBy:
+          type: string
+          example: "Rahul Sharma"
+        department:
+          type: string
+          enum: [Engineering, HR, Finance, Operations, Sales, Management, Design]
+          example: "Engineering"
+        issueType:
+          type: string
+          enum: [Heating, Screen, Battery, Keyboard, Performance, Network, Software, Other]
+          example: "Heating"
+        priority:
+          type: string
+          enum: [Critical, High, Medium, Low]
+          example: "High"
+        status:
+          type: string
+          enum: [Open, "In Progress", Resolved, Closed]
+          example: "Open"
+        assignedTo:
+          type: string
+          example: "IT Team"
+        resolvedAt:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-01-15"
+        remarks:
+          type: string
+          example: "Fan making noise"
+
+    TicketInput:
+      type: object
+      required: [title, issueType, priority, status]
+      properties:
+        ticketNo:
+          type: string
+          example: "TKT-0013"
+        title:
+          type: string
+          example: "Keyboard not responding"
+        assetName:
+          type: string
+          example: "HP EliteBook 840"
+        assetSerial:
+          type: string
+          example: "SN-HP-099"
+        reportedBy:
+          type: string
+          example: "Priya Patel"
+        department:
+          type: string
+          enum: [Engineering, HR, Finance, Operations, Sales, Management, Design]
+          example: "HR"
+        issueType:
+          type: string
+          enum: [Heating, Screen, Battery, Keyboard, Performance, Network, Software, Other]
+          example: "Keyboard"
+        priority:
+          type: string
+          enum: [Critical, High, Medium, Low]
+          example: "Medium"
+        status:
+          type: string
+          enum: [Open, "In Progress", Resolved, Closed]
+          example: "Open"
+        assignedTo:
+          type: string
+          example: "Vikram IT"
+        resolvedAt:
+          type: string
+          format: date
+          nullable: true
+          example: null
+        remarks:
+          type: string
+          example: "Keys stuck"
+
+    TicketStats:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 45
+        open:
+          type: integer
+          example: 12
+        inProgress:
+          type: integer
+          example: 8
+        resolved:
+          type: integer
+          example: 20
+        closed:
+          type: integer
+          example: 5
+        critical:
+          type: integer
+          example: 3
+
+    # ── Vendor ────────────────────────────────
+    Vendor:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "64f1a2b3c4d5e6f7a8b9c0d3"
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Tech Supplies Pvt Ltd"
+        contactPerson:
+          type: string
+          example: "Rajesh Kumar"
+        email:
+          type: string
+          format: email
+          example: "rajesh@techsupplies.com"
+        phone:
+          type: string
+          example: "9876543210"
+        vendorType:
+          type: string
+          enum: [Purchase, Rental, Repair]
+          example: "Purchase"
+        gstin:
+          type: string
+          description: GST Identification Number
+          example: "27AABCT1332L1Z2"
+        website:
+          type: string
+          example: "www.techsupplies.com"
+        address:
+          type: string
+          example: "12, MG Road, Pune"
+        isActive:
+          type: boolean
+          example: true
+        remarks:
+          type: string
+          example: "Primary laptop & desktop supplier"
+
+    VendorInput:
+      type: object
+      required: [name, vendorType]
+      properties:
+        name:
+          type: string
+          example: "New Vendor Pvt Ltd"
+        contactPerson:
+          type: string
+          example: "Amit Shah"
+        email:
+          type: string
+          format: email
+          example: "amit@newvendor.com"
+        phone:
+          type: string
+          example: "9876500001"
+        vendorType:
+          type: string
+          enum: [Purchase, Rental, Repair]
+          example: "Repair"
+        gstin:
+          type: string
+          example: "27AABCN1234X1Z5"
+        website:
+          type: string
+          example: "www.newvendor.com"
+        address:
+          type: string
+          example: "15, Koregaon Park, Pune"
+        isActive:
+          type: boolean
+          example: true
+        remarks:
+          type: string
+          example: ""
+
+    VendorStats:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 12
+        active:
+          type: integer
+          example: 10
+        inactive:
+          type: integer
+          example: 2
+        byType:
+          type: object
+          properties:
+            Purchase:
+              type: integer
+              example: 5
+            Rental:
+              type: integer
+              example: 4
+            Repair:
+              type: integer
+              example: 3
+
+    # ── Common ────────────────────────────────
+    ErrorResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "Resource not found"
+        message:
+          type: string
+          example: "Resource not found"
+
+    ListMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 120
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 25
+
+  # ─── REUSABLE RESPONSES ─────────────────────
+  responses:
+    Unauthorized:
+      description: Missing or invalid Bearer token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Validation error or malformed request body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+# ─────────────────────────────────────────────
+# GLOBAL SECURITY
+# ─────────────────────────────────────────────
+security:
+  - bearerAuth: []
+
+# ─────────────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────────────
+paths:
+
+  # ══ AUTH ══════════════════════════════════════
+  /auth/callback:
+    post:
+      tags: [Auth]
+      summary: Exchange OAuth code for JWT
+      description: |
+        Called by the frontend OAuth callback page. Exchanges the
+        one-time authorisation `code` for a signed JWT token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthCallbackRequest'
+      responses:
+        '200':
+          description: Login successful — returns JWT and user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthCallbackResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ══ LAPTOPS ═══════════════════════════════════
+  /laptops:
+    get:
+      tags: [Laptops]
+      summary: List all laptops
+      description: Returns a paginated, filterable list of all laptop assets.
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Full-text search across brand, model, serial, assigned
+          example: "MacBook"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [assigned, maintenance, available, unassigned]
+          example: "assigned"
+        - name: location
+          in: query
+          schema:
+            type: string
+          example: "TEERTH"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Paginated list of laptops
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  laptops:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Laptop'
+                  meta:
+                    $ref: '#/components/schemas/ListMeta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Laptops]
+      summary: Create a new laptop asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaptopInput'
+      responses:
+        '201':
+          description: Laptop created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Laptop'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /laptops/meta/stats:
+    get:
+      tags: [Laptops]
+      summary: Get laptop statistics
+      description: Returns aggregate counts by status for dashboard cards.
+      responses:
+        '200':
+          description: Laptop stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaptopStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /laptops/bulk:
+    post:
+      tags: [Laptops]
+      summary: Bulk import laptops
+      description: Inserts multiple laptop records in a single request (e.g. from an Excel import).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkImportRequest'
+      responses:
+        '200':
+          description: Bulk import result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkImportResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /laptops/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: MongoDB `_id` or numeric `id` of the laptop
+        example: "64f1a2b3c4d5e6f7a8b9c0d1"
+
+    get:
+      tags: [Laptops]
+      summary: Get a single laptop
+      responses:
+        '200':
+          description: Laptop found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Laptop'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Laptops]
+      summary: Update a laptop
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LaptopInput'
+      responses:
+        '200':
+          description: Laptop updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Laptop'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Laptops]
+      summary: Delete a laptop
+      responses:
+        '200':
+          description: Laptop deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Laptop deleted"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ══ TICKETS ═══════════════════════════════════
+  /tickets:
+    get:
+      tags: [Tickets]
+      summary: List all tickets
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by ticket number, title, asset name, reporter, or assignee
+          example: "overheating"
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [Open, "In Progress", Resolved, Closed]
+          example: "Open"
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [Critical, High, Medium, Low]
+          example: "Critical"
+        - name: issueType
+          in: query
+          schema:
+            type: string
+            enum: [Heating, Screen, Battery, Keyboard, Performance, Network, Software, Other]
+          example: "Heating"
+        - name: department
+          in: query
+          schema:
+            type: string
+          example: "Engineering"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Paginated list of tickets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tickets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ticket'
+                  meta:
+                    $ref: '#/components/schemas/ListMeta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Tickets]
+      summary: Create a new support ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketInput'
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tickets/meta/stats:
+    get:
+      tags: [Tickets]
+      summary: Get ticket statistics
+      description: Returns counts by status and priority for dashboard cards.
+      responses:
+        '200':
+          description: Ticket stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tickets/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: MongoDB `_id` or numeric `id` of the ticket
+        example: "64f1a2b3c4d5e6f7a8b9c0d2"
+
+    get:
+      tags: [Tickets]
+      summary: Get a single ticket
+      responses:
+        '200':
+          description: Ticket found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Tickets]
+      summary: Update a ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketInput'
+      responses:
+        '200':
+          description: Ticket updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ticket'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Tickets]
+      summary: Delete a ticket
+      responses:
+        '200':
+          description: Ticket deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Ticket deleted"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ══ VENDORS ═══════════════════════════════════
+  /vendors:
+    get:
+      tags: [Vendors]
+      summary: List all vendors
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by name, contact person, or email
+          example: "Tech Supplies"
+        - name: vendorType
+          in: query
+          schema:
+            type: string
+            enum: [Purchase, Rental, Repair]
+          example: "Purchase"
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+          example: true
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Paginated list of vendors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vendors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Vendor'
+                  meta:
+                    $ref: '#/components/schemas/ListMeta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Vendors]
+      summary: Create a new vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorInput'
+      responses:
+        '201':
+          description: Vendor created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /vendors/meta/stats:
+    get:
+      tags: [Vendors]
+      summary: Get vendor statistics
+      responses:
+        '200':
+          description: Vendor stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /vendors/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: MongoDB `_id` or numeric `id` of the vendor
+        example: "64f1a2b3c4d5e6f7a8b9c0d3"
+
+    get:
+      tags: [Vendors]
+      summary: Get a single vendor
+      responses:
+        '200':
+          description: Vendor found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Vendors]
+      summary: Update a vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorInput'
+      responses:
+        '200':
+          description: Vendor updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Vendors]
+      summary: Delete a vendor
+      responses:
+        '200':
+          description: Vendor deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Vendor deleted"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
