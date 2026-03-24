@@ -27,6 +27,7 @@ import Settings from './pages/Settings';
 import Equipment from './pages/Equipment';
 import Vendors from './pages/Vendors';
 import Tickets from './pages/Tickets';
+import People from './pages/People';
 const SwaggerDocs = lazy(() => import('./pages/SwaggerDocs'));
 
 function PrivateRoute() {
@@ -98,6 +99,7 @@ function App() {
               <Route path="/dashboard-management" element={<DashboardManagement />} />
               <Route path="/settings"        element={<Settings />} />
               <Route path="/equipment"       element={<Equipment />} />
+              <Route path="/people"          element={<People />} />
             </Route>
           </Route>
 
