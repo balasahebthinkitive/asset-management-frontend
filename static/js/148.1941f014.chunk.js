@@ -1,2 +1,0 @@
-"use strict";(globalThis.webpackChunkfrontend=globalThis.webpackChunkfrontend||[]).push([[148],{39148(n,e,a){a.r(e),a.d(e,{default:()=>s});var t=a(68942),d=(a(52242),a(70579));function s(){return(0,d.jsx)("div",{style:{background:"#fff",minHeight:"100vh",padding:"0 0 40px"},children:(0,d.jsx)(t.A,{url:"/asset-management-frontend/openapi.yaml",docExpansion:"list",defaultModelsExpandDepth:1,displayRequestDuration:!0})})}}}]);
-//# sourceMappingURL=148.1941f014.chunk.js.map

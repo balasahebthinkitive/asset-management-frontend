@@ -1,20 +1,20 @@
 {
   "files": {
     "main.css": "/asset-management-frontend/static/css/main.ea2cb9d1.css",
-    "main.js": "/asset-management-frontend/static/js/main.286857d7.js",
-    "static/js/148.1941f014.chunk.js": "/asset-management-frontend/static/js/148.1941f014.chunk.js",
-    "static/css/881.3686ca82.chunk.css": "/asset-management-frontend/static/css/881.3686ca82.chunk.css",
-    "static/js/881.431c141c.chunk.js": "/asset-management-frontend/static/js/881.431c141c.chunk.js",
+    "main.js": "/asset-management-frontend/static/js/main.00064b44.js",
+    "static/js/148.4fd57461.chunk.js": "/asset-management-frontend/static/js/148.4fd57461.chunk.js",
+    "static/css/752.fbd548c4.chunk.css": "/asset-management-frontend/static/css/752.fbd548c4.chunk.css",
+    "static/js/752.9f872830.chunk.js": "/asset-management-frontend/static/js/752.9f872830.chunk.js",
     "static/media/Thinkitive-logo.svg": "/asset-management-frontend/static/media/Thinkitive-logo.2396c31c3fa3306ff8076c3c8b6b85e9.svg",
     "index.html": "/asset-management-frontend/index.html",
     "main.ea2cb9d1.css.map": "/asset-management-frontend/static/css/main.ea2cb9d1.css.map",
-    "main.286857d7.js.map": "/asset-management-frontend/static/js/main.286857d7.js.map",
-    "148.1941f014.chunk.js.map": "/asset-management-frontend/static/js/148.1941f014.chunk.js.map",
-    "881.3686ca82.chunk.css.map": "/asset-management-frontend/static/css/881.3686ca82.chunk.css.map",
-    "881.431c141c.chunk.js.map": "/asset-management-frontend/static/js/881.431c141c.chunk.js.map"
+    "main.00064b44.js.map": "/asset-management-frontend/static/js/main.00064b44.js.map",
+    "148.4fd57461.chunk.js.map": "/asset-management-frontend/static/js/148.4fd57461.chunk.js.map",
+    "752.fbd548c4.chunk.css.map": "/asset-management-frontend/static/css/752.fbd548c4.chunk.css.map",
+    "752.9f872830.chunk.js.map": "/asset-management-frontend/static/js/752.9f872830.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ea2cb9d1.css",
-    "static/js/main.286857d7.js"
+    "static/js/main.00064b44.js"
   ]
 }
