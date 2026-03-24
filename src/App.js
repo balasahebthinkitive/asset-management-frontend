@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import './App.css';
 import { AuthProvider, useAuth } from './auth';
@@ -27,7 +27,7 @@ import Settings from './pages/Settings';
 import Equipment from './pages/Equipment';
 import Vendors from './pages/Vendors';
 import Tickets from './pages/Tickets';
-import SwaggerDocs from './pages/SwaggerDocs';
+const SwaggerDocs = lazy(() => import('./pages/SwaggerDocs'));
 
 function PrivateRoute() {
   const { user } = useAuth();
@@ -94,7 +94,7 @@ function App() {
               <Route path="/rent-list"       element={<RentList />} />
               <Route path="/vendors"             element={<Vendors />} />
               <Route path="/tickets"             element={<Tickets />} />
-              <Route path="/api-docs"            element={<SwaggerDocs />} />
+              <Route path="/api-docs"            element={<Suspense fallback={<div style={{padding:40,color:'var(--clr-text-muted)'}}>Loading API docs…</div>}><SwaggerDocs /></Suspense>} />
               <Route path="/dashboard-management" element={<DashboardManagement />} />
               <Route path="/settings"        element={<Settings />} />
               <Route path="/equipment"       element={<Equipment />} />
