@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/asset-management-frontend/static/css/main.ea2cb9d1.css",
-    "main.js": "/asset-management-frontend/static/js/main.a78ace9c.js",
+    "main.css": "/asset-management-frontend/static/css/main.c76da1bd.css",
+    "main.js": "/asset-management-frontend/static/js/main.6f0e7a8c.js",
     "static/media/Thinkitive-logo.svg": "/asset-management-frontend/static/media/Thinkitive-logo.2396c31c3fa3306ff8076c3c8b6b85e9.svg",
     "index.html": "/asset-management-frontend/index.html",
-    "main.ea2cb9d1.css.map": "/asset-management-frontend/static/css/main.ea2cb9d1.css.map",
-    "main.a78ace9c.js.map": "/asset-management-frontend/static/js/main.a78ace9c.js.map"
+    "main.c76da1bd.css.map": "/asset-management-frontend/static/css/main.c76da1bd.css.map",
+    "main.6f0e7a8c.js.map": "/asset-management-frontend/static/js/main.6f0e7a8c.js.map"
   },
   "entrypoints": [
-    "static/css/main.ea2cb9d1.css",
-    "static/js/main.a78ace9c.js"
+    "static/css/main.c76da1bd.css",
+    "static/js/main.6f0e7a8c.js"
   ]
 }
