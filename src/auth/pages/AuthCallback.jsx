@@ -1,14 +1,22 @@
 import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 /**
  * Handles the redirect back from Google OAuth.
- * The backend redirects to /auth/callback#token=<jwt>&role=<role>
+ * Backend redirects to /auth/callback#token=<jwt>&role=<role>
+ *
+ * Uses window.location.replace instead of React navigate to avoid
+ * the React state timing race where PrivateRoute reads stale user state.
  */
+function decodeJwt(token) {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+  } catch {
+    return {};
+  }
+}
+
 export default function AuthCallback() {
-  const navigate = useNavigate();
-  const { setUserFromToken } = useAuth();
   const handled = useRef(false);
 
   useEffect(() => {
@@ -21,17 +29,30 @@ export default function AuthCallback() {
     const error  = params.get('error');
 
     if (error) {
-      navigate(`/login?error=${error}`, { replace: true });
+      window.location.replace(`/login?error=${error}`);
       return;
     }
 
-    if (token) {
-      setUserFromToken(token, role);
-      navigate(role === 'admin' ? '/' : '/assets', { replace: true });
-    } else {
-      navigate('/login?error=missing_token', { replace: true });
+    if (!token) {
+      window.location.replace('/login?error=missing_token');
+      return;
     }
-  }, [navigate, setUserFromToken]);
+
+    // Decode JWT to get email/id for richer user object
+    const claims = decodeJwt(token);
+    const user = {
+      token,
+      role: role || claims.role || 'user',
+      email: claims.email || '',
+      id: claims.id || '',
+    };
+
+    // Write to localStorage BEFORE navigating so PrivateRoute always finds the user
+    localStorage.setItem('user', JSON.stringify(user));
+
+    // Full page replace — no React state timing issue
+    window.location.replace('/');
+  }, []);
 
   return (
     <div style={{
@@ -41,6 +62,7 @@ export default function AuthCallback() {
       justifyContent: 'center',
       fontFamily: 'sans-serif',
       color: '#6b7280',
+      fontSize: 15,
     }}>
       Signing you in…
     </div>
