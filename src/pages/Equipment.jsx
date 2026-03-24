@@ -1,9 +1,10 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import {
   useReactTable, getCoreRowModel, getSortedRowModel,
   getPaginationRowModel, flexRender,
 } from "@tanstack/react-table";
 import INITIAL_DATA from "../data/equipmentData";
+import { getEquipment, createEquipment, updateEquipment, deleteEquipment } from "../api/equipment";
 import "./Laptops.css";   // reuse all lp-* utility styles
 import "./Equipment.css";
 
@@ -235,6 +236,23 @@ function exportCSV(data) {
 /* ─── Main Component ─────────────────────────────────────────────────────── */
 export default function Equipment() {
   const [equipment, setEquipment] = useState(()=>INITIAL_DATA.map(e=>({...FIELD_DEFAULTS,...e})));
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
+  const [saving, setSaving]       = useState(false);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true); setError(null);
+      const res = await getEquipment();
+      const items = res.data?.equipment ?? res.data ?? [];
+      setEquipment(items.length ? items : INITIAL_DATA.map(e=>({...FIELD_DEFAULTS,...e})));
+    } catch {
+      setEquipment(INITIAL_DATA.map(e=>({...FIELD_DEFAULTS,...e})));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
   const [search, setSearch]       = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId]       = useState(null);
@@ -366,19 +384,28 @@ export default function Equipment() {
   };
   const closeModal = () => { setShowModal(false); setEditId(null); };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name||!form.serial) { alert("Equipment Name and Serial Number are required."); return; }
-    const now = today();
-    if (editId) {
-      setEquipment(prev=>prev.map(e=>e.id===editId?{...form,id:editId}:e));
-    } else {
-      const newId = Math.max(...equipment.map(e=>e.id),0)+1;
-      setEquipment(prev=>[...prev,{...form,id:newId,dateAdded:now}]);
-    }
-    closeModal();
+    try {
+      setSaving(true);
+      if (editId) { await updateEquipment(editId, form); } else { await createEquipment({...form, dateAdded: today()}); }
+      await fetchData();
+      closeModal();
+    } catch (err) {
+      setError(err.response?.data?.message || "Save failed.");
+    } finally { setSaving(false); }
   };
 
-  const handleDelete = (id) => { setEquipment(prev=>prev.filter(e=>e.id!==id)); setDeleteConfirm(null); };
+  const handleDelete = async (id) => {
+    try {
+      await deleteEquipment(id);
+      setDeleteConfirm(null);
+      await fetchData();
+    } catch (err) {
+      setError(err.response?.data?.message || "Delete failed.");
+      setDeleteConfirm(null);
+    }
+  };
   const togglePanel  = (name) => setActivePanel(p=>p===name?null:name);
 
   const filterActive = appliedFilter.rows.some(r=>r.field);
@@ -408,8 +435,20 @@ export default function Equipment() {
     </div>
   );
 
+  if (loading) return (
+    <div className="lp-page eq-page" style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:300 }}>
+      <span style={{ color:"#9ca3af", fontSize:14 }}>Loading…</span>
+    </div>
+  );
+
   return (
     <div className="lp-page eq-page">
+
+      {error && (
+        <div style={{ margin:"12px 20px 0", padding:"10px 14px", background:"#FEE2E2", color:"#991B1B", borderRadius:8, fontSize:13 }}>
+          {error}
+        </div>
+      )}
 
       {/* breadcrumb */}
       <div className="lp-page-header">
@@ -614,7 +653,7 @@ export default function Equipment() {
             </div>
             <div className="lp-modal-footer">
               <button className="lp-btn-ghost" onClick={closeModal}>Cancel</button>
-              <button className="lp-btn-primary" onClick={handleSave}>{editId?"Update":"Save Equipment"}</button>
+              <button className="lp-btn-primary" onClick={handleSave} disabled={saving}>{saving?"Saving…":editId?"Update":"Save Equipment"}</button>
             </div>
           </div>
         </div>

@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   useReactTable, getCoreRowModel, getSortedRowModel,
   getPaginationRowModel, flexRender,
 } from "@tanstack/react-table";
 import INITIAL_DATA from "../data/mouseData";
+import { getMice, createMouse, updateMouse, deleteMouse } from "../api/mouse";
 import "./Laptops.css";
 
 const BADGE = {
@@ -22,6 +23,23 @@ const LOCATIONS = ["ABIL","TEERTH","AMBROSIA",""];
 
 export default function Mouse() {
   const [assets, setAssets]             = useState(INITIAL_DATA);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
+  const [saving, setSaving]   = useState(false);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true); setError(null);
+      const res = await getMice();
+      const items = res.data?.mouse ?? res.data ?? [];
+      setAssets(items.length ? items : INITIAL_DATA);
+    } catch {
+      setAssets(INITIAL_DATA);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
   const [search, setSearch]             = useState("");
   const [filterBrand, setFilterBrand]   = useState("");
   const [filterType, setFilterType]     = useState("");
@@ -83,24 +101,30 @@ export default function Mouse() {
   const openAdd    = () => { setForm(EMPTY_FORM); setEditId(null); setShowModal(true); };
   const closeModal = () => { setShowModal(false); setEditId(null); };
 
-  const handleSave = () => {
-    if (!form.brand || !form.model) {
-      alert("Brand and Model are required.");
+  const handleSave = async () => {
+    if (!form.brand || !form.model || !form.serial) {
+      alert("Brand, Model and Serial No are required.");
       return;
     }
-    if (editId) {
-      setAssets(prev => prev.map(a => a.id === editId ? {...form, id: editId} : a));
-    } else {
-      const newId = Math.max(...assets.map(a => a.id), 0) + 1;
-      setAssets(prev => [...prev, {...form, id: newId}]);
-      setPagination(p => ({ ...p, pageIndex: Math.floor(filtered.length / p.pageSize) }));
-    }
-    closeModal();
+    try {
+      setSaving(true);
+      if (editId) { await updateMouse(editId, form); } else { await createMouse(form); }
+      await fetchData();
+      closeModal();
+    } catch (err) {
+      setError(err.response?.data?.message || "Save failed.");
+    } finally { setSaving(false); }
   };
 
-  const handleDelete = (id) => {
-    setAssets(prev => prev.filter(a => a.id !== id));
-    setDeleteConfirm(null);
+  const handleDelete = async (id) => {
+    try {
+      await deleteMouse(id);
+      setDeleteConfirm(null);
+      await fetchData();
+    } catch (err) {
+      setError(err.response?.data?.message || "Delete failed.");
+      setDeleteConfirm(null);
+    }
   };
 
   const stats = {
@@ -130,8 +154,19 @@ export default function Mouse() {
   const from = Math.min(pageIndex * pageSize + 1, totalRows);
   const to   = Math.min((pageIndex + 1) * pageSize, totalRows);
 
+  if (loading) return (
+    <div className="lp-page" style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:300 }}>
+      <span style={{ color:"#9ca3af", fontSize:14 }}>Loading…</span>
+    </div>
+  );
+
   return (
     <div className="lp-page">
+      {error && (
+        <div style={{ margin:"12px 20px 0", padding:"10px 14px", background:"#FEE2E2", color:"#991B1B", borderRadius:8, fontSize:13 }}>
+          {error}
+        </div>
+      )}
 
       {/* Page header */}
       <div className="lp-page-header" style={{ padding:"16px 20px 0" }}>
@@ -275,7 +310,7 @@ export default function Mouse() {
             </div>
             <div className="lp-modal-footer">
               <button className="lp-btn-ghost" onClick={closeModal}>Cancel</button>
-              <button className="lp-btn-primary" onClick={handleSave}>{editId ? "Update Asset" : "Save Asset"}</button>
+              <button className="lp-btn-primary" onClick={handleSave} disabled={saving}>{saving ? "Saving…" : editId ? "Update Asset" : "Save Asset"}</button>
             </div>
           </div>
         </div>

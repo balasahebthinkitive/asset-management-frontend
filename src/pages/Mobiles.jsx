@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   useReactTable, getCoreRowModel, getSortedRowModel,
   getPaginationRowModel, flexRender,
 } from "@tanstack/react-table";
 import INITIAL_DATA from "../data/mobilesData";
+import { getMobiles, createMobile, updateMobile, deleteMobile } from "../api/mobiles";
 import "./Laptops.css";
 
 const BADGE = {
@@ -21,6 +22,9 @@ const OS_LIST  = ["iOS","Android",""];
 
 export default function Mobiles() {
   const [assets, setAssets]             = useState(INITIAL_DATA);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [saving, setSaving]             = useState(false);
   const [search, setSearch]             = useState("");
   const [filterBrand, setFilterBrand]   = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -30,6 +34,20 @@ export default function Mobiles() {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [sorting, setSorting]           = useState([]);
   const [pagination, setPagination]     = useState({ pageIndex: 0, pageSize: 15 });
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true); setError(null);
+      const res = await getMobiles();
+      const items = res.data?.mobiles ?? res.data ?? [];
+      setAssets(items.length ? items : INITIAL_DATA);
+    } catch {
+      setAssets(INITIAL_DATA);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const filtered = useMemo(() => {
     return assets.filter(a => {
@@ -77,24 +95,30 @@ export default function Mobiles() {
   const openAdd    = () => { setForm(EMPTY_FORM); setEditId(null); setShowModal(true); };
   const closeModal = () => { setShowModal(false); setEditId(null); };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.brand || !form.model || !form.serial) {
       alert("Brand, Model and Serial No are required.");
       return;
     }
-    if (editId) {
-      setAssets(prev => prev.map(a => a.id === editId ? {...form, id: editId} : a));
-    } else {
-      const newId = Math.max(...assets.map(a => a.id), 0) + 1;
-      setAssets(prev => [...prev, {...form, id: newId}]);
-      setPagination(p => ({ ...p, pageIndex: Math.floor(filtered.length / p.pageSize) }));
-    }
-    closeModal();
+    try {
+      setSaving(true);
+      if (editId) { await updateMobile(editId, form); } else { await createMobile(form); }
+      await fetchData();
+      closeModal();
+    } catch (err) {
+      setError(err.response?.data?.message || "Save failed.");
+    } finally { setSaving(false); }
   };
 
-  const handleDelete = (id) => {
-    setAssets(prev => prev.filter(a => a.id !== id));
-    setDeleteConfirm(null);
+  const handleDelete = async (id) => {
+    try {
+      await deleteMobile(id);
+      setDeleteConfirm(null);
+      await fetchData();
+    } catch (err) {
+      setError(err.response?.data?.message || "Delete failed.");
+      setDeleteConfirm(null);
+    }
   };
 
   const stats = {
@@ -123,8 +147,20 @@ export default function Mobiles() {
   const from = Math.min(pageIndex * pageSize + 1, totalRows);
   const to   = Math.min((pageIndex + 1) * pageSize, totalRows);
 
+  if (loading) return (
+    <div className="lp-page" style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:300 }}>
+      <span style={{ color:"#9ca3af", fontSize:14 }}>Loading…</span>
+    </div>
+  );
+
   return (
     <div className="lp-page">
+
+      {error && (
+        <div style={{ margin:"12px 20px 0", padding:"10px 14px", background:"#FEE2E2", color:"#991B1B", borderRadius:8, fontSize:13 }}>
+          {error}
+        </div>
+      )}
 
       {/* Page header */}
       <div className="lp-page-header" style={{ padding:"16px 20px 0" }}>
@@ -256,8 +292,8 @@ export default function Mobiles() {
               </div>
             </div>
             <div className="lp-modal-footer">
-              <button className="lp-btn-ghost" onClick={closeModal}>Cancel</button>
-              <button className="lp-btn-primary" onClick={handleSave}>{editId ? "Update Asset" : "Save Asset"}</button>
+              <button className="lp-btn-ghost" onClick={closeModal} disabled={saving}>Cancel</button>
+              <button className="lp-btn-primary" onClick={handleSave} disabled={saving}>{saving ? "Saving…" : editId ? "Update Asset" : "Save Asset"}</button>
             </div>
           </div>
         </div>

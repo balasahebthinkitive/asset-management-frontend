@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useReactTable, getCoreRowModel, getSortedRowModel, getPaginationRowModel, flexRender } from "@tanstack/react-table";
 import INITIAL_DATA from "../data/internLaptopData";
+import { getInternLaptops, createInternLaptop, updateInternLaptop, deleteInternLaptop } from "../api/internLaptops";
 import "./Laptops.css";
 
 const BADGE = {
@@ -17,6 +18,23 @@ const LOCATIONS   = ["ABIL","TEERTH","AMBROSIA",""];
 
 export default function InternLaptop() {
   const [assets, setAssets] = useState(INITIAL_DATA);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
+  const [saving, setSaving]   = useState(false);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true); setError(null);
+      const res = await getInternLaptops();
+      const items = res.data?.laptops ?? res.data ?? [];
+      setAssets(items.length ? items : INITIAL_DATA);
+    } catch {
+      setAssets(INITIAL_DATA);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { fetchData(); }, [fetchData]);
   const [search, setSearch] = useState("");
   const [fStatus, setFStatus]=useState("");
   const [fDept, setFDept]   =useState("");
@@ -49,13 +67,25 @@ export default function InternLaptop() {
   ],[]);
 
   const table=useReactTable({data:filtered,columns,state:{sorting,pagination},onSortingChange:setSorting,onPaginationChange:setPagination,getCoreRowModel:getCoreRowModel(),getSortedRowModel:getSortedRowModel(),getPaginationRowModel:getPaginationRowModel()});
-  const save=()=>{if(!form.brand||!form.model){alert("Brand and Model required.");return;}if(editId)setAssets(p=>p.map(a=>a.id===editId?{...form,id:editId}:a));else{const id=Math.max(...assets.map(a=>a.id),0)+1;setAssets(p=>[...p,{...form,id}]);}setShowModal(false);setEditId(null);};
+  const save=async()=>{if(!form.brand||!form.model){alert("Brand and Model required.");return;}try{setSaving(true);if(editId){await updateInternLaptop(editId,form);}else{await createInternLaptop(form);}await fetchData();setShowModal(false);setEditId(null);}catch(err){setError(err.response?.data?.message||"Save failed.");}finally{setSaving(false);}};
+
   const stats={total:assets.length,active:assets.filter(a=>a.status==="Active").length,returned:assets.filter(a=>a.status==="Returned").length,overdue:assets.filter(a=>a.status==="Overdue").length};
   const {pageIndex,pageSize}=table.getState().pagination,total=filtered.length,pc=table.getPageCount(),from=Math.min(pageIndex*pageSize+1,total),to=Math.min((pageIndex+1)*pageSize,total);
   const Field=({field,label,type="text",opts=null})=><div className="lp-form-field"><label className="lp-form-label">{label}</label>{opts?<select className="lp-form-inp" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}>{opts.map(o=><option key={o} value={o}>{o||"— none —"}</option>)}</select>:<input type={type} className="lp-form-inp" value={form[field]} onChange={e=>setForm({...form,[field]:e.target.value})}/>}</div>;
 
+  if (loading) return (
+    <div className="lp-page" style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:300 }}>
+      <span style={{ color:"#9ca3af", fontSize:14 }}>Loading…</span>
+    </div>
+  );
+
   return (
     <div className="lp-page">
+      {error && (
+        <div style={{ margin:"12px 20px 0", padding:"10px 14px", background:"#FEE2E2", color:"#991B1B", borderRadius:8, fontSize:13 }}>
+          {error}
+        </div>
+      )}
       <div className="lp-page-header" style={{padding:"16px 20px 0"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
           <div><h1 style={{margin:0,fontSize:20,fontWeight:700,color:"#111827"}}>Intern Laptops</h1><p style={{margin:"2px 0 0",fontSize:12,color:"#6b7280"}}>{assets.length} total assigned</p></div>
@@ -91,8 +121,8 @@ export default function InternLaptop() {
           </div>
         </div>
       </div>
-      {showModal&&<div className="lp-overlay"><div className="lp-modal"><div className="lp-modal-header"><h2 className="lp-modal-title">{editId?"Edit Record":"Assign Laptop"}</h2><button className="lp-modal-close" onClick={()=>{setShowModal(false);setEditId(null);}}>×</button></div><div className="lp-modal-body"><div className="lp-form-grid"><Field field="brand" label="Brand *" opts={BRANDS}/><Field field="model" label="Model *"/><Field field="serial" label="Serial No"/><Field field="intern" label="Intern Name"/><Field field="department" label="Department" opts={DEPARTMENTS}/><Field field="status" label="Status" opts={STATUSES}/><Field field="startDate" label="Start Date" type="date"/><Field field="endDate" label="End Date" type="date"/><Field field="location" label="Location" opts={LOCATIONS}/><Field field="remark" label="Remark"/></div></div><div className="lp-modal-footer"><button className="lp-btn-ghost" onClick={()=>{setShowModal(false);setEditId(null);}}>Cancel</button><button className="lp-btn-primary" onClick={save}>{editId?"Update":"Save"}</button></div></div></div>}
-      {delConfirm&&<div className="lp-overlay"><div className="lp-modal lp-modal-sm"><div className="lp-modal-header"><h3 className="lp-modal-title">Delete Record</h3><button className="lp-modal-close" onClick={()=>setDelConfirm(null)}>×</button></div><div className="lp-modal-body"><p className="lp-del-msg">Delete record for <strong>{delConfirm.intern}</strong> — {delConfirm.brand} {delConfirm.model}?</p></div><div className="lp-modal-footer"><button className="lp-btn-ghost" onClick={()=>setDelConfirm(null)}>Cancel</button><button className="lp-btn-danger" onClick={()=>{setAssets(p=>p.filter(a=>a.id!==delConfirm.id));setDelConfirm(null);}}>Delete</button></div></div></div>}
+      {showModal&&<div className="lp-overlay"><div className="lp-modal"><div className="lp-modal-header"><h2 className="lp-modal-title">{editId?"Edit Record":"Assign Laptop"}</h2><button className="lp-modal-close" onClick={()=>{setShowModal(false);setEditId(null);}}>×</button></div><div className="lp-modal-body"><div className="lp-form-grid"><Field field="brand" label="Brand *" opts={BRANDS}/><Field field="model" label="Model *"/><Field field="serial" label="Serial No"/><Field field="intern" label="Intern Name"/><Field field="department" label="Department" opts={DEPARTMENTS}/><Field field="status" label="Status" opts={STATUSES}/><Field field="startDate" label="Start Date" type="date"/><Field field="endDate" label="End Date" type="date"/><Field field="location" label="Location" opts={LOCATIONS}/><Field field="remark" label="Remark"/></div></div><div className="lp-modal-footer"><button className="lp-btn-ghost" onClick={()=>{setShowModal(false);setEditId(null);}}>Cancel</button><button className="lp-btn-primary" onClick={save} disabled={saving}>{saving?"Saving…":editId?"Update":"Save"}</button></div></div></div>}
+      {delConfirm&&<div className="lp-overlay"><div className="lp-modal lp-modal-sm"><div className="lp-modal-header"><h3 className="lp-modal-title">Delete Record</h3><button className="lp-modal-close" onClick={()=>setDelConfirm(null)}>×</button></div><div className="lp-modal-body"><p className="lp-del-msg">Delete record for <strong>{delConfirm.intern}</strong> — {delConfirm.brand} {delConfirm.model}?</p></div><div className="lp-modal-footer"><button className="lp-btn-ghost" onClick={()=>setDelConfirm(null)}>Cancel</button><button className="lp-btn-danger" onClick={async()=>{try{await deleteInternLaptop(delConfirm._id||delConfirm.id);setDelConfirm(null);await fetchData();}catch(err){setError(err.response?.data?.message||"Delete failed.");setDelConfirm(null);}}}>Delete</button></div></div></div>}
     </div>
   );
 }
