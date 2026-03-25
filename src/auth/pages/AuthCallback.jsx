@@ -51,7 +51,7 @@ export default function AuthCallback() {
     localStorage.setItem('user', JSON.stringify(user));
 
     // Full page replace — no React state timing issue
-    window.location.replace('/');
+    window.location.replace(user.role === 'admin' ? '/admin' : '/');
   }, []);
 
   return (

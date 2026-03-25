@@ -24,7 +24,7 @@ export default function Login() {
     setLoading(true);
     try {
       const user = await login(form.email, form.password);
-      navigate(user.role === 'admin' ? '/' : '/assets');
+      navigate(user.role === 'admin' ? '/admin' : '/assets');
     } catch (err) {
       setError(err.response?.data?.msg || 'Invalid email or password.');
     } finally {
@@ -171,6 +171,15 @@ export default function Login() {
           <p className="login-footer-note">
             By signing in you agree to Thinkitive's IT asset usage policy.
           </p>
+
+          <div className="login-admin-link">
+            <a href="/admin-login">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Admin Portal sign in
+            </a>
+          </div>
         </div>
       </div>
     </div>

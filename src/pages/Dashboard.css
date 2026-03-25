@@ -11,7 +11,12 @@
 
 /* ── Page heading ─────────────────────────────────────────── */
 .dash-heading {
-  margin-bottom: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 .dash-heading h1 {
   margin: 0;
@@ -24,6 +29,63 @@
   margin: 3px 0 0;
   font-size: 12px;
   color: var(--clr-text-muted);
+}
+.dash-head-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.dash-updated {
+  font-size: 11px;
+  color: var(--clr-text-muted);
+  white-space: nowrap;
+}
+.dash-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 13px;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--clr-text);
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.dash-refresh-btn:hover { background: var(--clr-bg); box-shadow: 0 1px 4px var(--clr-shadow); }
+.dash-refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── Quick actions ─────────────────────────────────────────── */
+.dash-quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.dash-qa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 13px;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--clr-text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.dash-qa-btn:hover {
+  background: #EBF4FF;
+  border-color: #2878C8;
+  color: #2878C8;
+  box-shadow: 0 1px 4px rgba(40,120,200,0.12);
 }
 
 /* ── Grand stat cards (4 col) ─────────────────────────────── */
@@ -189,13 +251,14 @@
   white-space: nowrap;
 }
 
-/* ── Charts row (2 col) ──────────────────────────────────── */
+/* ── Charts row (3 col) ──────────────────────────────────── */
 .charts-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
   margin-bottom: 14px;
 }
+@media (max-width: 900px) { .charts-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 700px) { .charts-row { grid-template-columns: 1fr; } }
 
 /* ── Breakdown grid (3 col) ──────────────────────────────── */
@@ -270,6 +333,50 @@
   color: var(--clr-text);
   min-width: 24px;
   text-align: right;
+}
+
+/* ── Card title row (title + view-all button) ────────────── */
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.card-title-row .card-title {
+  margin-bottom: 0;
+}
+.card-view-all {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--clr-primary, #2878C8);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.card-view-all:hover { opacity: 0.7; }
+
+/* ── Location list ───────────────────────────────────────── */
+.loc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.loc-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.loc-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 /* ── Chart tooltip ───────────────────────────────────────── */

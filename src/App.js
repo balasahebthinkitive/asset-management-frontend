@@ -28,15 +28,35 @@ import Equipment from './pages/Equipment';
 import Vendors from './pages/Vendors';
 import Tickets from './pages/Tickets';
 import People from './pages/People';
+// Admin portal — standalone layout + separate pages
+import AdminLogin    from './pages/AdminLogin';
+import AdminLayout   from './pages/AdminLayout';
+import AdminOverview from './pages/AdminOverview';
+import AdminUsers    from './pages/AdminUsers';
+import AdminAudit    from './pages/AdminAudit';
+import AdminSettings from './pages/AdminSettings';
+
 const SwaggerDocs = lazy(() => import('./pages/SwaggerDocs'));
 
+// ── Guards ──────────────────────────────────────────────────
 function PrivateRoute() {
   const { user } = useAuth();
   const stored = localStorage.getItem('user');
   return (user || stored) ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
-// Single shared layout — sidebarCollapsed state lives here, never resets on navigation
+// Admin-only guard — redirects non-admins back to dashboard
+function AdminRoute() {
+  const { user } = useAuth();
+  const stored = localStorage.getItem('user');
+  let role = user?.role;
+  if (!role && stored) {
+    try { role = JSON.parse(stored)?.role; } catch { role = null; }
+  }
+  return role === 'admin' ? <Outlet /> : <Navigate to="/" replace />;
+}
+
+// ── Main app layout (with sidebar) ──────────────────────────
 function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -65,6 +85,7 @@ function AppLayout() {
   );
 }
 
+// ── App ─────────────────────────────────────────────────────
 function App() {
   return (
     <ThemeProvider>
@@ -72,10 +93,12 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* All protected pages share ONE AppLayout instance */}
           <Route element={<PrivateRoute />}>
+
+            {/* ── Main app (shared sidebar layout) ── */}
             <Route element={<AppLayout />}>
               <Route path="/"        element={<Dashboard />} />
               <Route path="/assets"  element={<Dashboard />} />
@@ -101,6 +124,17 @@ function App() {
               <Route path="/equipment"       element={<Equipment />} />
               <Route path="/people"          element={<People />} />
             </Route>
+
+            {/* ── Admin portal (separate standalone layout, admin-only) ── */}
+            <Route element={<AdminRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin"          element={<AdminOverview />} />
+                <Route path="/admin/users"    element={<AdminUsers />} />
+                <Route path="/admin/audit"    element={<AdminAudit />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
+              </Route>
+            </Route>
+
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />
