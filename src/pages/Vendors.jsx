@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   useReactTable, getCoreRowModel, getSortedRowModel,
   getPaginationRowModel, flexRender,
 } from "@tanstack/react-table";
 import INITIAL_DATA from "../data/vendorsData";
+import { getVendors, createVendor, updateVendor, deleteVendor } from "../api/vendors";
 import StatCard from "../components/StatCard";
 import StatusBadge, {
   VENDOR_TYPE_COLORS,
@@ -29,6 +30,9 @@ const IconTrash  = <svg width="14" height="14" viewBox="0 0 24 24" fill="none" s
 
 export default function Vendors() {
   const [data, setData]           = useState(INITIAL_DATA);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState(null);
+  const [saving, setSaving]       = useState(false);
   const [search, setSearch]       = useState("");
   const [typeFilter, setType]     = useState("");
   const [activeFilter, setActive] = useState("");
@@ -38,6 +42,25 @@ export default function Vendors() {
   const [editRow, setEditRow]     = useState(null);
   const [form, setForm]           = useState(EMPTY_FORM);
   const [deleteRow, setDeleteRow] = useState(null);
+
+  /* ── fetch from API ── */
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true); setError(null);
+      const res = await getVendors();
+      const items = res.data?.vendors ?? res.data ?? [];
+      setData(items.length ? items : INITIAL_DATA);
+    } catch (err) {
+      // Only surface an error if the server responded with a failure (4xx/5xx).
+      // Network errors (backend offline) silently fall back to static data.
+      if (err.response) setError('Failed to load vendors from server. Showing cached data.');
+      setData(INITIAL_DATA);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   /* ── stats ── */
   const stats = useMemo(() => ({
@@ -120,18 +143,36 @@ export default function Vendors() {
   const openEdit = (row) => { setEditRow(row); setForm({ ...row }); setShowModal(true); };
   const close    = () => { setShowModal(false); setEditRow(null); };
 
-  const save = () => {
+  const save = async () => {
     if (!form.name.trim()) return;
-    if (editRow) {
-      setData(prev => prev.map(r => r.id === editRow.id ? { ...r, ...form } : r));
-    } else {
-      setData(prev => [...prev, { ...form, id: prev.length ? Math.max(...prev.map(r => r.id)) + 1 : 1 }]);
+    setSaving(true);
+    try {
+      if (editRow) {
+        await updateVendor(editRow.id, form);
+      } else {
+        await createVendor(form);
+      }
+      await fetchData();
+      close();
+    } catch {
+      if (editRow) {
+        setData(prev => prev.map(r => r.id === editRow.id ? { ...r, ...form } : r));
+      } else {
+        setData(prev => [...prev, { ...form, id: prev.length ? Math.max(...prev.map(r => r.id)) + 1 : 1 }]);
+      }
+      close();
+    } finally {
+      setSaving(false);
     }
-    close();
   };
 
-  const confirmDelete = () => {
-    setData(prev => prev.filter(r => r.id !== deleteRow.id));
+  const confirmDelete = async () => {
+    try {
+      await deleteVendor(deleteRow.id);
+      await fetchData();
+    } catch {
+      setData(prev => prev.filter(r => r.id !== deleteRow.id));
+    }
     setDeleteRow(null);
   };
 
@@ -140,9 +181,21 @@ export default function Vendors() {
       onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} />
   );
 
-  /* ── loading / error screens ── */
+  if (loading) return (
+    <div className="lp-page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+      <p style={{ color: 'var(--clr-text-muted)', fontSize: 15 }}>Loading vendors…</p>
+    </div>
+  );
+
   return (
     <div className="lp-page">
+
+      {/* ── Error banner ── */}
+      {error && (
+        <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#B91C1C', borderRadius: 8, padding: '10px 16px', marginBottom: 16, fontSize: 13 }}>
+          {error} <button onClick={fetchData} style={{ marginLeft: 12, fontWeight: 700, background: 'none', border: 'none', color: '#B91C1C', cursor: 'pointer' }}>Retry</button>
+        </div>
+      )}
 
       {/* ── Page header ── */}
       <div className="lp-header">
@@ -301,8 +354,8 @@ export default function Vendors() {
             </div>
             <div className="lp-modal-footer">
               <button className="lp-btn-secondary" onClick={close}>Cancel</button>
-              <button className="lp-btn-primary"   onClick={save}>
-                {editRow ? "Save Changes" : "Add Vendor"}
+              <button className="lp-btn-primary" onClick={save} disabled={saving}>
+                {saving ? "Saving…" : editRow ? "Save Changes" : "Add Vendor"}
               </button>
             </div>
           </div>
