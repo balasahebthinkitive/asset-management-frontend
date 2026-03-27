@@ -35,6 +35,7 @@ import AdminOverview from './pages/AdminOverview';
 import AdminUsers    from './pages/AdminUsers';
 import AdminAudit    from './pages/AdminAudit';
 import AdminSettings from './pages/AdminSettings';
+import AiAssistant  from './components/AiAssistant';
 
 const SwaggerDocs = lazy(() => import('./pages/SwaggerDocs'));
 
@@ -63,6 +64,7 @@ function AppLayout() {
   return (
     <div className="app-shell">
       <Navbar />
+      <AiAssistant />
       <div className="app-body">
         <Sidebar collapsed={sidebarCollapsed} />
         <button

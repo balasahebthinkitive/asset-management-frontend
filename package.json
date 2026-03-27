@@ -2,8 +2,9 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://balasahebthinkitive.github.io/asset-management-frontend",
+  "homepage": "/",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
     "@tanstack/react-query": "^5.91.2",
     "@tanstack/react-table": "^8.21.3",
     "@testing-library/dom": "^10.4.1",
