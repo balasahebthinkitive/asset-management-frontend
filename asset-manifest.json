@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/asset-management-frontend/static/css/main.0a00485a.css",
-    "main.js": "/asset-management-frontend/static/js/main.61255e45.js",
-    "static/js/148.86e4b57f.chunk.js": "/asset-management-frontend/static/js/148.86e4b57f.chunk.js",
-    "static/media/Thinkitive-logo.svg": "/asset-management-frontend/static/media/Thinkitive-logo.2396c31c3fa3306ff8076c3c8b6b85e9.svg",
-    "index.html": "/asset-management-frontend/index.html",
-    "main.0a00485a.css.map": "/asset-management-frontend/static/css/main.0a00485a.css.map",
-    "main.61255e45.js.map": "/asset-management-frontend/static/js/main.61255e45.js.map",
-    "148.86e4b57f.chunk.js.map": "/asset-management-frontend/static/js/148.86e4b57f.chunk.js.map"
+    "main.css": "/static/css/main.0a00485a.css",
+    "main.js": "/static/js/main.1c6af468.js",
+    "static/js/148.bda26fa6.chunk.js": "/static/js/148.bda26fa6.chunk.js",
+    "static/media/Thinkitive-logo.svg": "/static/media/Thinkitive-logo.2396c31c3fa3306ff8076c3c8b6b85e9.svg",
+    "index.html": "/index.html",
+    "main.0a00485a.css.map": "/static/css/main.0a00485a.css.map",
+    "main.1c6af468.js.map": "/static/js/main.1c6af468.js.map",
+    "148.bda26fa6.chunk.js.map": "/static/js/148.bda26fa6.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0a00485a.css",
-    "static/js/main.61255e45.js"
+    "static/js/main.1c6af468.js"
   ]
 }

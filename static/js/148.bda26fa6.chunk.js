@@ -1,0 +1,2 @@
+"use strict";(globalThis.webpackChunkfrontend=globalThis.webpackChunkfrontend||[]).push([[148],{9148(e,t,n){n.r(t),n.d(t,{default:()=>a});var r=n(579);function a(){return(0,r.jsx)("iframe",{src:"/swagger.html",title:"API Documentation",style:{width:"100%",height:"calc(100vh - 60px)",border:"none"}})}}}]);
+//# sourceMappingURL=148.bda26fa6.chunk.js.map
